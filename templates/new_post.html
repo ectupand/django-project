@@ -1,16 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Новая запись{% endblock %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
 {% block content %}
 {% load user_filters %}
 
 <div class="row justify-content-center">
     <div class="col-md-8 p-5">
         <div class="card">
-            <div class="card-header">Новый пост</div>
+            <div class="card-header">{{ title }}</div>
             <div class="card-body">
 
 
-                <form action={% url 'new_post' %} method="POST">
+                <form action="{{ action }}" method="POST">
                     {% csrf_token %}
                     <label for="{{ form.group.label }}" class="cold-md-4 col-form-label text-md-right">{{ form.group.label }}</label>
                     <div class="col-md-6">
@@ -18,7 +21,7 @@
                         <p class="help">{{ form.group.help_text|safe }}</p>
                     </div>
 
-                    <label for="{{ form.text.label }}" class="cold-md-4 col-form-label text-md-right">form.text.label:</label>
+                    <label for="{{ form.text.label }}" class="cold-md-4 col-form-label text-md-right">{{ form.text.label }}:</label>
                     <div class="col-md-6">
                         {{ form.text }}
                         <p class="help">{{ form.text.help_text|safe }}</p>

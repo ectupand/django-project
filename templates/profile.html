@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ name }}{% endblock %}
+{% block header %}Последние посты {{ name }}{% endblock %}
+{% block content %}
+<main role="main" class="container">
+    <div class="row">
+            <div class="col-md-3 mb-3 mt-1">
+                    <div class="card">
+                            <div class="card-body">
+                                    <div class="h2">
+                                        {{name}}
+                                    </div>
+                                    <div class="h3 text-muted">
+                                        @{{username}}
+                                    </div>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                            <div class="h6 text-muted">
+                                            Подписчиков: XXX <br />
+                                            Подписан: XXX
+                                            </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                            <div class="h6 text-muted">
+                                                <!-- Количество записей -->
+                                                Записей: {{ number_of_user_posts }}
+                                            </div>
+                                    </li>
+                            </ul>
+                    </div>
+            </div>
+
+            <div class="col-md-9">
+
+
+
+                <!-- Остальные посты -->
+                {% for post in page %}
+                    <h3>
+                        Автор: {{ post.author }}, дата публикации: {{ post.pub_date|date:"d M Y" }}
+                    </h3>
+                    <p>{{ post.text }}</p>
+                    <hr>
+                {% endfor %}
+
+                <!-- Здесь постраничная навигация паджинатора -->
+                {% if page.has_other_pages %}
+                    {% include "paginator.html" with items=page paginator=paginator %}
+                {% endif %}
+     </div>
+    </div>
+</main>
+{% endblock %}
