@@ -31,6 +31,8 @@ def group_posts(request, slug):
 
 
 def new_post(request):
+    if request.user not in User.objects.all():
+        return redirect('index')
     if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
@@ -58,7 +60,10 @@ def profile(request, username):
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
 
-    last_post = user_posts[0]
+    try:
+        last_post = user_posts[0]
+    except IndexError:
+        return render(request, 'profile.html', {'name': name, 'username': username, 'number_of_user_posts': 0})
 
     return render(
         request,

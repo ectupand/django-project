@@ -30,7 +30,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'Users',
+    'users',
     'posts',
     'django.contrib.sites',
     'django.contrib.flatpages',
