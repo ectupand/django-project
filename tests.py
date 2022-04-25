@@ -1,10 +1,8 @@
-import re
 from unittest import TestCase
 import pytest
 from django.test import Client
 from django.urls import reverse
 
-from posts.forms import PostForm
 from posts.models import User, Post
 
 
@@ -88,3 +86,12 @@ class TestScenario(TestCase):
         updated_post = Post.objects.filter(text=new_text).first()
         self.assertEqual(created_post.id, updated_post.id)
         self.assert_post_appears_three_places(updated_post)
+
+
+class TestingErrors(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_page_none_returns_404(self):
+        response = self.client.get("this_path_does_not_exist")
+        self.assertEqual(response.status_code, 404)
