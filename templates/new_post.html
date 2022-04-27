@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load thumbnail %}
 {% block title %}
     {{ title }}
 {% endblock %}
@@ -13,7 +13,7 @@
             <div class="card-body">
 
 
-                <form action="{{ action }}" method="POST">
+                <form action="{{ action }}" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     <label for="{{ form.group.label }}" class="cold-md-4 col-form-label text-md-right">{{ form.group.label }}</label>
                     <div class="col-md-6">
@@ -25,6 +25,12 @@
                     <div class="col-md-6">
                         {{ form.text }}
                         <p class="help">{{ form.text.help_text|safe }}</p>
+                    </div>
+
+                    <label for="{{ form.image.label }}" class="cold-md-4 col-form-label text-md-right">{{ form.image.label }}:</label>
+                    <div class="col-md-6">
+                        {{ form.image }}
+                        <p class="help">{{ form.image.help_text|safe }}</p>
                     </div>
 
                     <input type="submit" value="Отправить">

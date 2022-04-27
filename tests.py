@@ -1,9 +1,9 @@
-from unittest import TestCase
+from django.test import TestCase
 import pytest
 from django.test import Client
 from django.urls import reverse
-
-from posts.models import User, Post
+from django.core.files.uploadedfile import SimpleUploadedFile, TemporaryUploadedFile
+from posts.models import User, Post, Group
 
 
 @pytest.mark.django_db(transaction=True)
@@ -38,7 +38,7 @@ class TestScenario(TestCase):
     def test_new_post_appears_three_places(self):
         self.client.login(username="yaloh", password="loshik123")
         text = "я лох я лох"
-        response = self.client.post(
+        self.client.post(
             reverse("new_post"),
             {"text": text}
         )
@@ -88,10 +88,63 @@ class TestScenario(TestCase):
         self.assert_post_appears_three_places(updated_post)
 
 
-class TestingErrors(TestCase):
+class TestingErrorPages(TestCase):
     def setUp(self):
         self.client = Client()
 
     def test_page_none_returns_404(self):
         response = self.client.get("this_path_does_not_exist")
         self.assertEqual(response.status_code, 404)
+
+
+@pytest.mark.django_db(transaction=True)
+class TestingImageImport(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="yaloh",
+            password="loshik123"
+        )
+        self.group = Group.objects.create(slug="test_group")
+
+    def test_img_exists(self):
+        self.client.login(username="yaloh", password="loshik123")
+        with open('media/posts/Untitled.png', 'rb') as img:
+            self.client.post(
+                reverse('new_post'),
+                data={
+                    'author': self.user,
+                    'text': 'text with image',
+                    'image': img,
+                    'group': self.group.id
+                }
+            )
+
+        post = Post.objects.first()
+        self.assertEqual(Post.objects.count(), 1)
+
+        urls = [
+            reverse('index'),
+            reverse('post', kwargs={'username': post.author,
+                                    'post_id': post.id}),
+            reverse('profile', kwargs={'username': post.author}),
+            reverse('group_posts', kwargs={'slug': self.group.slug})
+        ]
+
+        for url in urls:
+            response = self.client.get(url)
+            self.assertContains(response, '<img')
+
+    def test__unable_to_post_invalid_format(self):
+        with open('media/posts/Untitled.txt', 'rb') as img:
+            self.client.post(
+                reverse('new_post'),
+                data={
+                    'author': self.user,
+                    'text': 'text with image',
+                    'image': img,
+                    'group': self.group.id
+                },
+                follow=True
+            )
+        self.assertEqual(Post.objects.count(), 0)

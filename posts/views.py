@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -30,11 +31,12 @@ def group_posts(request, slug):
         {"group": group, "page": page, "paginator": paginator})
 
 
+@login_required
 def new_post(request):
     if request.user not in User.objects.all():
         return redirect('index')
     if request.method == 'POST':
-        form = PostForm(request.POST)
+        form = PostForm(request.POST, files=request.FILES or None)
         if form.is_valid():
             form.instance.author = request.user
             form.save()
@@ -86,6 +88,7 @@ def post_view(request, username, post_id):
          'last_post.id': last_post.id, 'number_of_user_posts': user_posts.count()})
 
 
+@login_required
 def post_edit(request, username, post_id):
     user = User.objects.filter(username=username).first()
     if user.id != request.user.id:
@@ -93,7 +96,7 @@ def post_edit(request, username, post_id):
 
     post = Post.objects.filter(id=post_id, author=user).first()
 
-    form = PostForm(request.POST or None, instance=post)
+    form = PostForm(request.POST or None, files=request.FILES or None, instance=post)
     if request.POST and form.is_valid():
         form.instance.author = user
         form.save()
