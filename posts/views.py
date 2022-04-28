@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from .forms import PostForm
+from .forms import PostForm, CommentForm
 from .models import Post, Group, User
 from django.core.paginator import Paginator
 
@@ -81,11 +81,15 @@ def post_view(request, username, post_id):
     user_posts = Post.objects.filter(author=user).order_by('-pub_date')
     name = user.first_name + ' ' + user.last_name
     last_post = user_posts[0]
+    form = CommentForm()
+    items = last_post.comments.all()
+    print(form)
     return render(
         request,
         'post.html',
         {'name': name, 'username': username, 'last_post': last_post, 'last_post.pub_date': last_post.pub_date,
-         'last_post.id': last_post.id, 'number_of_user_posts': user_posts.count()})
+         'last_post.id': last_post.id, 'number_of_user_posts': user_posts.count(),
+         'form': form, 'items': items})
 
 
 @login_required
@@ -130,3 +134,15 @@ def page_not_found(request, exception):
 def server_error(request):
     return render(request, "misc/500.html", status=500)
 
+
+@login_required()
+def add_comment(request, username, post_id):
+    post = get_object_or_404(Post, pk=post_id, author__username=username)
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.author = request.user
+        comment.save()
+        return redirect("post", username=username, post_id=post_id)
+    return render(request, "post.html", {"form": form})
