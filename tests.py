@@ -128,7 +128,7 @@ class TestingImageImport(TestCase):
             reverse('post', kwargs={'username': post.author,
                                     'post_id': post.id}),
             reverse('profile', kwargs={'username': post.author}),
-            reverse('group_posts', kwargs={'slug': self.group.slug})
+            reverse('group', kwargs={'slug': self.group.slug})
         ]
 
         for url in urls:
