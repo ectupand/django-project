@@ -148,3 +148,30 @@ class TestingImageImport(TestCase):
                 follow=True
             )
         self.assertEqual(Post.objects.count(), 0)
+
+
+@pytest.mark.django_db(transaction=True)
+class TestingCache(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="yaloh",
+            password="loshik123"
+        )
+        self.group = Group.objects.create(slug="test_group")
+
+    def test_cache_index(self):
+        self.client.login(username="yaloh", password="loshik123")
+        self.client.post(
+            reverse("new_post"),
+            {"text": "test_text 1"}
+        )
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, "test_text 1")
+
+        self.client.post(
+            reverse("new_post"),
+            {"text": "test_text 2"}
+        )
+        response2 = self.client.get(reverse('index'))
+        self.assertNotContains(response2, 'test_text 2')

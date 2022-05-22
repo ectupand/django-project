@@ -5,8 +5,10 @@ from django.urls import reverse
 from .forms import PostForm, CommentForm
 from .models import Post, Group, User
 from django.core.paginator import Paginator
+from django.views.decorators.cache import cache_page
 
 
+@cache_page(20, key_prefix='index_page')
 def index(request):
     post_list = Post.objects. order_by('-pub_date').all()
     paginator = Paginator(post_list, 10)
