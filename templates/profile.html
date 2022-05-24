@@ -5,6 +5,8 @@
 
 
 <main role="main" class="container">
+
+
     <div class="row">
             <div class="col-md-3 mb-3 mt-1">
                     <div class="card">
@@ -22,13 +24,30 @@
                                             Подписчиков: XXX <br />
                                             Подписан: XXX
                                             </div>
+
                                     </li>
                                     <li class="list-group-item">
                                             <div class="h6 text-muted">
                                                 <!-- Количество записей -->
                                                 Записей: {{ number_of_user_posts }}
                                             </div>
+
                                     </li>
+
+                                        <li class="list-group-item">
+                                            {% if request.user.username != username and following %}
+                                            <form method="POST" action="{% url 'profile_unfollow' username %}">
+                                                {% csrf_token %}
+                                            <button class="btn btn-lg btn-light" type="submit">Отписаться</button>
+                                            </form>
+                                            {% elif request.user.username != username and not following %}
+                                            <form method="POST" action="{% url 'profile_follow' username %}">
+                                                {% csrf_token %}
+                                            <button class="btn btn-lg btn-primary" type="submit">Подписаться</button>
+                                            </form>
+                                            {% endif %}
+                                        </li>
+
                             </ul>
                     </div>
             </div>
@@ -46,6 +65,7 @@
                 {% if page.has_other_pages %}
                     {% include "paginator.html" with items=page paginator=paginator %}
                 {% endif %}
+
      </div>
     </div>
 </main>

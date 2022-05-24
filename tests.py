@@ -3,7 +3,8 @@ import pytest
 from django.test import Client
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile, TemporaryUploadedFile
-from posts.models import User, Post, Group
+from posts.models import User, Post, Group, Comment
+from users.models import Follow
 
 
 @pytest.mark.django_db(transaction=True)
@@ -158,7 +159,6 @@ class TestingCache(TestCase):
             username="yaloh",
             password="loshik123"
         )
-        self.group = Group.objects.create(slug="test_group")
 
     def test_cache_index(self):
         self.client.login(username="yaloh", password="loshik123")
@@ -175,3 +175,59 @@ class TestingCache(TestCase):
         )
         response2 = self.client.get(reverse('index'))
         self.assertNotContains(response2, 'test_text 2')
+
+
+@pytest.mark.django_db(transaction=True)
+class TestingFollowing(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.client2 = Client()
+        self.client3 = Client()
+        self.user = User.objects.create_user(
+            username="yaloh",
+            password="loshik123"
+        )
+        self.user2 = User.objects.create_user(
+            username="yaneloh",
+            password="neloshik123"
+        )
+        self.user3 = User.objects.create_user(
+            username="loh",
+            password="loshped123"
+        )
+
+    def test__authed_user_follows__unfollows_others(self):
+        self.client.login(username="yaloh", password="loshik123")
+
+        response = self.client.get(reverse("profile_follow", args=(self.user2.username,)))
+        self.assertIn(response.status_code, (301, 302))
+        before = Follow.objects.all().count()
+        self.assertEquals(before, 1)
+
+        response = self.client.get(reverse("profile_unfollow", args=(self.user2.username,)))
+        self.assertIn(response.status_code, (301, 302))
+        after = Follow.objects.all().count()
+        self.assertEquals(after, 0)
+
+
+    def test__new_post_appears_for_followers__not_for_others(self):
+        self.client.login(username="yaloh", password="loshik123")
+        self.client3.login(username="loh", password="loshped123")
+        self.client.get(reverse("profile_follow", args=(self.user3.username,)))
+
+        self.client3.post(
+            reverse("new_post"),
+            {"text": "я лох"}
+        )
+        created_post = Post.objects.filter(text="я лох", author=self.user3.id).first()
+
+        response = self.client.get(reverse("follow_index"))
+        html = response.content.decode()
+        assert created_post.text in html
+
+        self.client2.login(username="yaneloh", password="neloshik123")
+        response = self.client2.get(reverse("follow_index"))
+        html = response.content.decode()
+        assert created_post.text not in html
+
+
