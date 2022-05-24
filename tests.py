@@ -231,3 +231,23 @@ class TestingFollowing(TestCase):
         assert created_post.text not in html
 
 
+    def test__only_authed_user_can_comment(self):
+        self.client.logout()
+        self.client3.login(username="loh", password="loshped123")
+
+        self.client3.post(
+            reverse("new_post"),
+            {"text": "test"}
+        )
+        post_id = Post.objects.filter(author=self.user3).first().id
+
+        response = self.client.get(f'/loh/{post_id}/')
+        self.assertEquals(response.status_code, 200)
+
+        response0 = self.client3.post(f'/loh/{post_id}/comment/', {"text": "test_pass"})
+        self.assertEquals(response0.status_code, 302)
+
+        created_comment = Comment.objects.filter(text="test_pass").first()
+        response = self.client.get(f'/loh/{post_id}/')
+        html = response.content.decode()
+        assert created_comment.text in html
